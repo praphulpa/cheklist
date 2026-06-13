@@ -1,0 +1,72 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // 1. Global Safety Net - Default Deny Catch-All
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // Task Schema Validator Helper (Anti-Update-Gap Blueprint)
+    function isValidTask(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.text is string && data.text.size() <= 1000 &&
+             data.completed is bool &&
+             data.date is string && data.date.size() == 10 &&
+             data.reminderTime is string && data.reminderTime.size() <= 32 &&
+             data.reminderDismissed is bool &&
+             data.priority is string && (data.priority == 'Low' || data.priority == 'Medium' || data.priority == 'High') &&
+             data.userId is string && data.userId == request.auth.uid;
+    }
+
+    // 2. Tasks Collection Rules
+    match /tasks/{taskId} {
+      // Path Variable Hardening
+      allow get: if isSignedIn() && isValidId(taskId) && existing().userId == request.auth.uid;
+      
+      // Secure List Query Enforcement - Check resource.data.userId to prevent unauthorized queries
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+
+      // Creation Rule (Exact field matching, immutability, temporal server timestamps)
+      allow create: if isSignedIn() &&
+                       isValidId(taskId) &&
+                       isValidTask(incoming()) &&
+                       incoming().id == taskId &&
+                       incoming().createdAt == request.time &&
+                       incoming().updatedAt == request.time &&
+                       incoming().keys().hasAll(['id', 'text', 'completed', 'date', 'priority', 'userId', 'createdAt', 'updatedAt', 'reminderTime', 'reminderDismissed']) &&
+                       incoming().keys().size() == 10;
+
+      // Updating Rule (Immutability of core fields, validation of incoming shape, temporal server timestamps, and affected fields constraint)
+      allow update: if isSignedIn() &&
+                       isValidId(taskId) &&
+                       isValidTask(incoming()) &&
+                       incoming().id == existing().id &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().updatedAt == request.time &&
+                       // Ensure only specific fields are affected by client updates
+                       incoming().diff(existing()).affectedKeys().hasOnly(['text', 'completed', 'date', 'priority', 'reminderTime', 'reminderDismissed', 'updatedAt']);
+
+      // Deletion Rule
+      allow delete: if isSignedIn() && isValidId(taskId) && existing().userId == request.auth.uid;
+    }
+  }
+}

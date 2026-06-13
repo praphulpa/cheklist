@@ -1,0 +1,68 @@
+{
+  "entities": {
+    "Task": {
+      "title": "Task",
+      "description": "An individual checklist item or to-do task.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "The unique identifier of the task."
+        },
+        "text": {
+          "type": "string",
+          "description": "The content or description of the task."
+        },
+        "completed": {
+          "type": "boolean",
+          "description": "Whether the task is completed or not."
+        },
+        "date": {
+          "type": "string",
+          "description": "The target date for the task in YYYY-MM-DD format."
+        },
+        "reminderTime": {
+          "type": "string",
+          "description": "Optional reminder timestamp relative to the target date."
+        },
+        "reminderDismissed": {
+          "type": "boolean",
+          "description": "Whether the user dismissed the notification for this task."
+        },
+        "priority": {
+          "type": "string",
+          "enum": ["Low", "Medium", "High"],
+          "description": "The custom priority tag of the task."
+        },
+        "userId": {
+          "type": "string",
+          "description": "The user ID of the task owner."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "UTC timestamp of task creation."
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "UTC timestamp of task update."
+        }
+      },
+      "required": [
+        "id",
+        "text",
+        "completed",
+        "date",
+        "priority",
+        "userId",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "tasks/{taskId}": {
+      "schema": "Task",
+      "description": "Cloud-synced checklist and to-do tasks owned by users."
+    }
+  }
+}

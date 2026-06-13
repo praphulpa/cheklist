@@ -1,0 +1,6 @@
+{
+  "name": "Daily Checklist & To-Do List",
+  "description": "A daily checklist and to-do list with reminders, priority tags, and secure cross-device cloud synchronization.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
