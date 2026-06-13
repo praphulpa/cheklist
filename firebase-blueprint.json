@@ -39,11 +39,11 @@
           "description": "The user ID of the task owner."
         },
         "createdAt": {
-          "type": "string",
+          "type": "integer",
           "description": "UTC timestamp of task creation."
         },
         "updatedAt": {
-          "type": "string",
+          "type": "integer",
           "description": "UTC timestamp of task update."
         }
       },
@@ -60,7 +60,7 @@
     }
   },
   "firestore": {
-    "tasks/{taskId}": {
+    "/tasks/{taskId}": {
       "schema": "Task",
       "description": "Cloud-synced checklist and to-do tasks owned by users."
     }

@@ -571,7 +571,7 @@ export default function App() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="font-display font-extrabold text-2xl tracking-tight text-stone-950">
-                  Everyday
+                  Everyday By Praphul
                 </h1>
                 <span className="px-2.5 py-0.5 rounded-full bg-stone-900 text-white text-[10px] font-bold tracking-widest uppercase">
                   Checklist

@@ -7,6 +7,11 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // Connection Warm-up Path Exemption
+    match /test/connection {
+      allow read: if true;
+    }
+
     // Global Helpers
     function isSignedIn() {
       return request.auth != null;
