@@ -91,6 +91,7 @@ export default function App() {
   const [isFirebaseConnected, setIsFirebaseConnected] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   const [activeReminderAlert, setActiveReminderAlert] = useState<Task | null>(null);
+  const [authError, setAuthError] = useState<{ code: string; message: string } | null>(null);
 
   // Date mode: 'Day' (only selected day's tasks) or 'AllDays' (any day)
   const [dateViewMode, setDateViewMode] = useState<'Day' | 'AllDays'>('Day');
@@ -227,6 +228,7 @@ export default function App() {
   const handleGoogleSignIn = async () => {
     try {
       setIsSyncing(true);
+      setAuthError(null);
       const signedInUser = await signInWithGoogle();
       if (signedInUser) {
         // Fetch current local tasks before state is replaced by DB sync
@@ -247,8 +249,35 @@ export default function App() {
           localStorage.removeItem('everyday_checklist_tasks');
         }
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error('Sign in process canceled or failed:', e);
+      let errorCode = 'auth/unknown';
+      let errorMsg = 'An unexpected error occurred during Google Sign-In.';
+
+      if (e && typeof e === 'object') {
+        errorCode = e.code || e.message || String(e);
+        if (e.code) {
+          if (e.code === 'auth/unauthorized-domain') {
+            errorMsg = 'This host/domain is not authorized for Firebase Google Authentication. You must add it to the authorized domains list in your Firebase Console.';
+          } else if (e.code === 'auth/operation-not-allowed') {
+            errorMsg = 'Google Sign-In is disabled or not set up for this project in your Firebase Console.';
+          } else if (e.code === 'auth/popup-blocked') {
+            errorMsg = 'The Google Sign-In window was blocked by your browser. Please allow popups for this site and try again.';
+          } else if (e.code === 'auth/web-storage-unsupported') {
+            errorMsg = 'Local storage or third-party cookies are blocked or unsupported by your browser inside the iframe. Please try opening this app in a new tab.';
+          } else if (e.code === 'auth/popup-closed-by-user') {
+            errorMsg = 'Google Sign-In was cancelled because the login window was closed before finishing.';
+          } else {
+            errorMsg = e.message || String(e);
+          }
+        } else if (e.message) {
+          errorMsg = e.message;
+        }
+      } else {
+        errorMsg = String(e);
+      }
+
+      setAuthError({ code: errorCode, message: errorMsg });
     } finally {
       setIsSyncing(false);
     }
@@ -599,6 +628,8 @@ export default function App() {
           onSignOut={handleGoogleSignOut}
           isSyncing={isSyncing}
           tasksCount={tasks.length}
+          authError={authError}
+          onClearError={() => setAuthError(null)}
         />
 
         {/* Calendar Strip */}

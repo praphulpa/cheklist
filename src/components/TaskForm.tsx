@@ -100,7 +100,7 @@ export function TaskForm({ initialTask, activeDate, onSubmit, onCancel }: TaskFo
       </div>
 
       {/* Task input description */}
-      <div className="space-y-1.5ClassName">
+      <div className="space-y-1.5">
         <label htmlFor="task-text-input" className="block text-xs font-semibold text-stone-500 uppercase tracking-wider">
           Task Description
         </label>
